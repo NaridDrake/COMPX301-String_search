@@ -28,15 +28,21 @@ public class REcompile{
     }
 
     private static boolean isVocab(String ch){   //Checks a certain character to see if it counts as a literal
-        String blacklist = "*()[]+|?";
+        String blacklist = "*()[]+|?.";
+
+        if (ch.equals("\\")){   //escapes character
+            j++;
+            return true;
+        }
+
         return !(blacklist.contains(ch));
     }
 
     public static void main(String[] args){
         xpr = args[0].split("");
-        ch = new String[(int)(xpr.length * 1.5)];        
-        n1 = new int[(int) (xpr.length * 1.5)];
-        n2 = new int[(int) (xpr.length * 1.5)];
+        ch = new String[(int)(xpr.length * 2)];        
+        n1 = new int[(int)(xpr.length * 2)];
+        n2 = new int[(int)(xpr.length * 2)];
 
         int r = expression();           //get the intial state of our entire FSM
         setState(0, "", r, r);          //set the start state to the FSM initial state
@@ -49,11 +55,16 @@ public class REcompile{
     private static int expression(){
         int r = term();
         if (j < xpr.length && (isVocab(xpr[j]) || xpr[j].equals("("))){
-            int f = state -1;
+            int f = state;
+            state++;
             int n = expression();
-            if (n1[f] == n2[f])
-                n2[f] = n;
-            n1[f] = n;
+
+            setState(f, "", n, n);
+
+            // for (int i = 0; i < ch.length; i++){
+            //     if (n1[i] == f) n1[i] = n;
+            //     if (n2[i] == f) n2[i] = n;
+            // }
         }
         return r;
     }
@@ -94,7 +105,7 @@ public class REcompile{
             state++;
 
             //resolve the second term in the alternation
-            t2 = term();
+            t2 = expression();
             setState(r, "", t1, t2);
             if (n1[f] == n2[f])
                 n2[f] = state;
@@ -110,6 +121,13 @@ public class REcompile{
         //first off, check that we're still in the array
         if (isVocab(xpr[j])) {
             setState(state, xpr[j], state+1, state+1);
+            j++;
+            r = state;
+            state++;
+
+        }else if (xpr[j].equals(".")) {
+            //character is a wildcard, so create a wildcard state
+            setState(state, "..", state+1, state+1);
             j++;
             r = state;
             state++;

@@ -1,0 +1,19 @@
+[x]	E -> T
+[x]	E -> TE
+
+[x]	T -> F
+[x]	T -> F*
+[]	T -> F+
+[]	T -> F?
+[x]	T -> F | E
+
+[x]	F -> .
+[x]	F -> any non-operator character
+[x]	F -> \any symbol
+[x]	F -> (E)
+[]	F -> [S]
+[]	F -> []S]
+[]	S -> I
+[]	S -> IS
+[]	I -> any symbol other than ']'
+
