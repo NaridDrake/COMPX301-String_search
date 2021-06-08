@@ -1,11 +1,13 @@
 [x]	E -> T
-[x]	E -> TE
+[x]  E -> TE
+[]	E -> TE|E
+[]  E -> T|E
 
 [x]	T -> F
 [x]	T -> F*
 []	T -> F+
 []	T -> F?
-[x]	T -> F | E
+[x]	T -> E | E
 
 [x]	F -> .
 [x]	F -> any non-operator character
