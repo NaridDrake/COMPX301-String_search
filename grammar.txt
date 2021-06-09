@@ -7,7 +7,6 @@
 [x]	T -> F*
 []	T -> F+
 []	T -> F?
-[x]	T -> E | E
 
 [x]	F -> .
 [x]	F -> any non-operator character
