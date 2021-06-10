@@ -11,7 +11,7 @@ public class REcompile{
     private static int[] n1;
     private static int[] n2;
 
-    private static String[] xpr;          //String containing the regex to be checked/compiled
+    private static String[] xpr;        //String containing the regex to be checked/compiled
     private static int j = 0;           //index variable representing the current character of the regex being examined
     private static int state = 1;       //keeps track of which state is currently being built
 
