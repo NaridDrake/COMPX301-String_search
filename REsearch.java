@@ -12,40 +12,66 @@ public class REsearch {
 
     // This is the queue that we can use and the string
     private static Dqueue dqueue;
-    // The list of possiable states
+    // The list of possible states
     private static ArrayList<FSMstate> states;
-    //private static String checkString;
     // Holds the position of the start of our string search
     private static int pointer;
-    // Holds the 
-    //private static int match;
 
     public static void main(String[] args){
 
         try{
             Scanner systemReader = new Scanner(System.in);
             String stateLine;
+            String[] lineParts = new String[5];
+            FSMstate newState;
+            int stateNum;
+            String type;
+            String symbol;
+            int next1;
+            int next2;
 
             while (systemReader.hasNextLine()) {
                 // Gets the next line
                 stateLine = systemReader.nextLine();
                 // Need to split the line
-                
-                // State, type, char, next, next
+                lineParts = stateLine.split(",");
+                stateNum =  Integer. parseInt(lineParts[0]); 
+                type = lineParts[1];
+                symbol = lineParts[2];
+                next1=  Integer. parseInt(lineParts[3]);
+                next2=  Integer. parseInt(lineParts[4]);
+
                 // If the next state is a starting state
-
+                if(type.compareTo("start")==0){
+                    newState = new StartingState(stateNum);
+                    states.add(newState);
+                }
                 // If the next state is a matching state
-
+                else if(type.compareTo("match")==0){
+                    newState = new MatchingState(stateNum, symbol, next1);
+                    states.add(newState);
+                }
                 // If the next state is a bridge state
-
+                else if(type.compareTo("bridge")==0){
+                    newState = new BridgeState(stateNum, next1);
+                    states.add(newState);
+                }
                 // If the next state is a branching state 
-
+                else if(type.compareTo("branch")==0){
+                    newState = new BranchingState(stateNum, next1, next2);
+                    states.add(newState);
+                }
                 // If the next state is a finishing state 
-
-
-
-                //Need to make the list out of these////////////////////////
+                else if(type.compareTo("finish")==0){
+                    newState = new FinalState(stateNum);
+                    states.add(newState);
+                }
+                //states.add(newState);
             }
+            systemReader.close();
+            
+            ////////////////////////////////////////////////Need to sort the array, can either instert at a certian point or implement comparable to the fsm object
+            ///////////////////////////////////////////////////////////////////////////////////////////////
 
         }
         catch(Exception e) {
@@ -64,7 +90,7 @@ public class REsearch {
 
             // The current line that is being checked
             String line;
-            boolean found;
+            boolean found; /// This can be deleted 
 
             // Checks and gets the next line at the same time
             while (myReader.hasNextLine()&&(line = myReader.nextLine())!=null) {
