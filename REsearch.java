@@ -29,8 +29,9 @@ public class REsearch {
             while (systemReader.hasNextLine()) {
                 // Gets the next line
                 stateLine = systemReader.nextLine();
-
+                // Need to split the line
                 
+                // State, type, char, next, next
                 // If the next state is a starting state
 
                 // If the next state is a matching state
