@@ -7,6 +7,7 @@ Authors:
 
 public class REcompile{
 
+    private static String[] types;
     private static String[] ch;
     private static int[] n1;
     private static int[] n2;
@@ -16,12 +17,13 @@ public class REcompile{
     private static int state = 1;       //keeps track of which state is currently being built
 
     private static void printStates(){
-        for (int i = 0; i < ch.length; i++){
-            System.err.println(i + ": " + ch[i] + " " + n1[i] + " " + n2[i]);
+        for (int i = 0; i < ch.length && types[i] != null; i++){
+            System.out.println(i + "," + types[i] + "," + "'" + ch[i] + "'," + n1[i] + "," + n2[1]);
         }
     }
 
-    private static void setState(int i, String c, int nxt1, int nxt2){
+    private static void setState(String type, int i, String c, int nxt1, int nxt2){
+        types[i] = type;
         ch[i] = c;
         n1[i] = nxt1;
         n2[i] = nxt2;
@@ -40,13 +42,14 @@ public class REcompile{
 
     public static void main(String[] args){
         xpr = args[0].split("");
+        types = new String[(int)(xpr.length * 2)];
         ch = new String[(int)(xpr.length * 2)];        
         n1 = new int[(int)(xpr.length * 2)];
         n2 = new int[(int)(xpr.length * 2)];
 
         int r = expression();           //get the intial state of our entire FSM
-        setState(0, "", r, r);          //set the start state to the FSM initial state
-        setState(state, "", -1, -1);    //append a finishing state to the end of the machine
+        setState("start", 0, "", r, r);          //set the start state to the FSM initial state
+        setState("final", state, "", -1, -1);    //append a finishing state to the end of the machine
 
         printStates();
     }
@@ -59,7 +62,7 @@ public class REcompile{
             state++;
             int n = expression();
 
-            setState(f, "", n, n);
+            setState("bridge", f, "", n, n);
 
             // for (int i = 0; i < ch.length; i++){
             //     if (n1[i] == f) n1[i] = n;
@@ -83,7 +86,7 @@ public class REcompile{
 
         //resolution for a closure symbol
         if (j < xpr.length && xpr[j].equals("*")){
-            setState(state, "", state+1, t1);
+            setState("branch", state, "", state+1, t1);
             j++;
             r = state;
             state++;
@@ -106,7 +109,7 @@ public class REcompile{
 
             //resolve the second term in the alternation
             t2 = expression();
-            setState(r, "", t1, t2);
+            setState("branch", r, "", t1, t2);
             if (n1[f] == n2[f])
                 n2[f] = state;
             n1[f] = state;
@@ -120,14 +123,14 @@ public class REcompile{
 
         //first off, check that we're still in the array
         if (isVocab(xpr[j])) {
-            setState(state, xpr[j], state+1, state+1);
+            setState("match", state, xpr[j], state+1, state+1);
             j++;
             r = state;
             state++;
 
         }else if (xpr[j].equals(".")) {
             //character is a wildcard, so create a wildcard state
-            setState(state, "..", state+1, state+1);
+            setState("match", state, "..", state+1, state+1);
             j++;
             r = state;
             state++;
