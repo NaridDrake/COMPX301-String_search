@@ -18,7 +18,7 @@ public class REcompile{
 
     private static void printStates(){
         for (int i = 0; i < ch.length && types[i] != null; i++){
-            System.out.println(i + "," + types[i] + "," + "'" + ch[i] + "'," + n1[i] + "," + n2[1]);
+            System.out.println(i + "," + types[i] + "," + "'" + ch[i] + "'," + n1[i] + "," + n2[i]);
         }
     }
 
@@ -72,26 +72,37 @@ public class REcompile{
         if (j < xpr.length && xpr[j].equals("|")){
             // Holds the finishing state of t1
             int finishT1 = state-1;
+            //System.out.println("state: "+ state);
             
             j++;
             // Call second expression
             t2 = expression();
+            
+            System.out.println("finishT1: " +finishT1);
+            //System.out.println("t2: " +t2);
             // Holds the finishing state of 21
             int finishT2 = state-1;
 
             // Create a new branching state that points to t1 and t2
-            setState("branch", r, "", t1, t2);
+            setState("branch", state, "", t1, t2);
+            //System.out.println("state: " +state);
+            System.out.println("t1: " +t1);
+            System.out.println("t2: " +t2);
             state++;
 
             // Creates a new finishing state
-            setState("finish", state-1, "", 0, 0);
-            state++;
+            //setState("finish", state, "", 0, 0);
+            r = state;
+            //state++;
 
             // Sets the finishing states of t1 and t2 to the new finishing state
-            n1[finishT1] = state-1;
-            n2[finishT1] = state-1;
-            n1[finishT2] = state-1;
-            n2[finishT2] = state-1;
+            System.out.println("finishT1: " +finishT1 + " state: " + state);
+            System.out.println("finishT2: " +finishT2 + " state: " + state);
+            n1[finishT1] = state;
+            n2[finishT1] = state;
+            n1[finishT2] = state;
+            n2[finishT2] = state;
+
 
             // // If the preceeding state is a 2-state machine,
             // // then set both its second output to this current state
@@ -113,10 +124,10 @@ public class REcompile{
             // n1[f] = state;
         }
         // If it is not the end of the expression then an error should occur
-        else if(j < xpr.length){
-            System.out.println("There was more in the regex that couldn't be evaluated");
-            System.exit(1);
-        }
+        //else if(j < xpr.length){
+        //     System.out.println("There was more in the regex that couldn't be evaluated");
+        //     System.exit(1);
+        // }
 
 
         return r;
@@ -124,7 +135,7 @@ public class REcompile{
 
     // Attempts to evaluate a term within the regex
     private static int term(){
-        // r is the initial state of the term, t1 is term 1, previous state
+        // r is the initial state of the term, t1 is term 1, f is the previous state
         int r = -1, t1 = -1, f = -1;
 
         f = state-1;
@@ -138,7 +149,7 @@ public class REcompile{
 
         // Resolution for a closure symbol
         if (j < xpr.length && xpr[j].equals("*")){
-            setState("branch", state, "", state+1, t1);
+            setState("branch", state, "", state+1, state-1); ///////changed this from t1 to state-1
             j++;
             r = state;
             state++;
@@ -147,12 +158,30 @@ public class REcompile{
         if (j < xpr.length && xpr[j].equals("?")){
             //create a branching state that connects to the term and a next state past the term
             setState("branch", state, "", r, state+1);
-
+            state++;
+            r = state;
+            j++;
             //go through the term and update all references to this branching state 
             //to point to the state after it
             explored = new int[state];
             updateForward(r, state);
         }
+        // Resolution for a "one or more" symbol
+        if (j < xpr.length && xpr[j].equals("+")){
+            // Make the branch state after the term has been ran through
+            setState("branch", state, "", state+1, t1);
+            j++;
+            state++;
+        }
+
+        // f is set to the previous state
+        //f = r;
+        // Needs to be able to concatenate recalls term
+        //if (j < xpr.length){  //t1 is the first term
+            //int finishT1 = state-1;
+            //term();
+        //} 
+
         return r;
     }
 
