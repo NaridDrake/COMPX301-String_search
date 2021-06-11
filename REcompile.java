@@ -143,14 +143,38 @@ public class REcompile{
             r = state;
             state++;
         }
+        //resolution for "one or none" symbol
+        if (j < xpr.length && xpr[j].equals("?")){
+            //create a branching state that connects to the term and a next state past the term
+            setState("branch", state, "", r, state+1);
 
-        // Needs to be able to concatenate
-        
-
+            //go through the term and update all references to this branching state 
+            //to point to the state after it
+            explored = new int[state];
+            updateForward(r, state);
+        }
         return r;
     }
 
-    // Attempts to evaluate a factor within the regex
+    static int[] explored;
+    private static void updateForward(int thisState, int targetIndex){
+        //first check if this state has already been explored
+        if (explored[thisState] != 0) return;
+        else explored[thisState] = 1;
+        //check both "next" pointers for this state
+        if (n1[thisState] == targetIndex){
+            n1[thisState] = targetIndex + 1;
+        }else{
+            updateForward(n1[thisState], targetIndex);
+        }
+        if (n2[thisState] == targetIndex + 1){
+            n2[thisState] = targetIndex + 1;
+        }else{
+            updateForward(n2[thisState], targetIndex);
+        }
+    }
+
+    //attempts to evaluate a factor within the regex
     private static int factor() throws Exception{
         int r;
 
