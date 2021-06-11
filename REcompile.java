@@ -120,12 +120,13 @@ public class REcompile{
 
             //go through the term and update all references to this branching state 
             //to point to the state after it
+            explored = new int[state];
             updateForward(r, state);
         }
         return r;
     }
 
-    static int[] explored = new int[state];
+    static int[] explored;
     private static void updateForward(int thisState, int targetIndex){
         //first check if this state has already been explored
         if (explored[thisState] != 0) return;
