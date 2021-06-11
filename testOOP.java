@@ -45,11 +45,11 @@ public class testOOP {
     public static FSM term(){
         FSM firstFactor = factor();
 
-        //check if there's a closure symbol
-        if (index < expression.length && expression[index].equals("*")){
-            //consume the character
+        //check if there's a closure symbol {*, +, ?}
+        if (index < expression.length && "*+?".contains(expression[index])){
+            firstFactor.closure(expression[index]);
+            // consume the character
             index++;
-            firstFactor.closure();
         }
 
         //check if we need to concatenate with another term
@@ -72,7 +72,11 @@ public class testOOP {
 
     public static FSM factor(){
         FSM factor = new FSM();
+        System.err.println("factoring the character " + expression[index]);
         if (isVocab(expression[index])){
+            if (expression[index].equals("\\")){
+                index++;
+            }
             MatchingState match = new MatchingState(state, expression[index], null);
             collection.add(match);
             factor.add(match);
@@ -80,6 +84,39 @@ public class testOOP {
             //consume the symbol and increment state
             index++;
             state++;
+        }
+        else if (expression[index].equals(".")){
+            //create a matching state with a wildcard indicator (..)
+            MatchingState match = new MatchingState(state, "..", null);
+            collection.add(match);
+            factor.add(match);
+
+            //consume the symbol and increment state
+            index++;
+            state++;
+        }
+        else if (expression[index].equals("[")) {
+            //consume the bracket
+            index++;
+            String set = expression[index];
+            index++;
+            //begin consuming characters and adding them to the set
+            //but only add items that aren't in the set already
+            while (index < expression.length - 1 && !expression[index].equals("]")){
+                if (!set.contains(expression[index])){
+                    set = set + expression[index];
+                }
+                index++;
+            }
+            if (expression[index].equals("]")){
+                //add a matching state that uses our set
+                MatchingState match = new MatchingState(state, set, null);
+                collection.add(match);
+                factor.add(match);
+
+                index++;
+                state++;
+            }
         }
         else {
             if (index < expression.length && expression[index].equals("(")){
@@ -109,12 +146,6 @@ public class testOOP {
 
     private static boolean isVocab(String ch) { // Checks a certain character to see if it counts as a literal
         String blacklist = "*()[]+|?.";
-
-        if (ch.equals("\\")) { // escapes character
-            index++;
-            return true;
-        }
-
         return !(blacklist.contains(ch));
     }
 
@@ -169,15 +200,37 @@ public class testOOP {
         }
 
         //handles closures
-        public void closure(){
+        public void closure(String type){
             System.err.println("closure");
+            BranchingState branch;
+            if (type.equals("*")){
+                branch = new BranchingState(state, getFinal(), sInitial);
+                collection.get(state-1).setNext1(branch);
+                state++;
+                collection.add(branch);
 
-            BranchingState branch = new BranchingState(state, getFinal(), sInitial);
-            state++;
-            collection.add(branch);
+                children.add(branch);
+                sInitial = branch;
+            }else if (type.equals("+")){
+                branch = new BranchingState(state, getFinal(), sInitial);
+                state++;
+                collection.add(branch);
 
-            children.add(branch);
-            this.add(branch);
+                children.add(branch);
+                this.add(branch);
+            }else if (type.equals("?")){
+                branch = new BranchingState(state, null, sInitial);
+                state++;
+                collection.add(branch);
+                children.add(branch);
+
+                sInitial = branch;
+
+                for (FSMstate state : children) {
+                    System.err.println(state.state_no);
+                }
+            }
+            
         }
 
         //alternates this machine with another
@@ -211,13 +264,19 @@ public class testOOP {
         }
 
         public void setFinal(FSMstate newFinal){
+            System.err.println("SetFinal for states: ");
+            for (FSMstate state : children) {
+                System.err.println(state.state_no);
+            }
+            System.err.println();
             if (sFinal == null){
                 sFinal = newFinal;
-                for (FSMstate state : children) {
-                    if (state.next1 == null) state.setNext1(newFinal); 
-                    if (state.next2 == null) state.setNext2(newFinal);
-
-                }
+            }
+            for (FSMstate state : children) {
+                if (state.next1 == null)
+                    state.setNext1(newFinal);
+                if (state.next2 == null)
+                    state.setNext2(newFinal);
             }
             if (nextMachine != null) nextMachine.setFinal(newFinal);
         }
