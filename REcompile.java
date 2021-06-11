@@ -54,27 +54,48 @@ public class REcompile{
         printStates();
     }
 
-    //attempts to evaluate the regex (or part of) as an expression
+    // Attempts to evaluate the regex (or part of) as an expression
     private static int expression(){
         int r = term();
+        // The previous state
+        int t2 = -1, t1 = r, f = -1, n=-1;
         if (j < xpr.length && (isVocab(xpr[j]) || xpr[j].equals("("))){
-            int f = state;
+            f = state;
             state++;
-            int n = expression();
+            n = expression();
 
             setState("bridge", f, "", n, n);
 
-            // for (int i = 0; i < ch.length; i++){
-            //     if (n1[i] == f) n1[i] = n;
-            //     if (n2[i] == f) n2[i] = n;
-            // }
+        }
+        // If we are looking at alternation symbol
+        if (j < xpr.length && xpr[j].equals("|")){
+            // If the preceeding state is a 2-state machine,
+            // then set both its second output to this current state
+            if (n1[f] == n2[f])
+                n2[f] = state;
+            //if the preceeding state is a branching machine,
+            //set its first output to this state to this state;
+            n1[f] = state;
+
+            f = state-1;
+            j++;
+            r = state;
+            state++;
+
+            // Resolve the second term in the alternation
+            t2 = expression();
+            setState("branch", r, "", t1, t2);
+            if (n1[f] == n2[f])
+                n2[f] = state;
+            n1[f] = state;
         }
         return r;
     }
 
     //attempts to evaluate a term within the regex
     private static int term(){
-        int r = -1, t1 = -1, t2 = -1, f = -1;
+        // r is the initial state of the term, t1 is term 1, previous state
+        int r = -1, t1 = -1, f = -1;
 
         f = state-1;
         try{
@@ -90,29 +111,6 @@ public class REcompile{
             j++;
             r = state;
             state++;
-        }
-
-        //resolution for an alternation symbol
-        if (j < xpr.length && xpr[j].equals("|")){
-            //if the preceeding state is a 2-state machine,
-            //then set both its second output to this current state
-            if (n1[f] == n2[f])
-                n2[f] = state;
-            //if the preceeding state is a branching machine,
-            //set its first output to this state to this state;
-            n1[f] = state;
-
-            f = state-1;
-            j++;
-            r = state;
-            state++;
-
-            //resolve the second term in the alternation
-            t2 = expression();
-            setState("branch", r, "", t1, t2);
-            if (n1[f] == n2[f])
-                n2[f] = state;
-            n1[f] = state;
         }
         return r;
     }
