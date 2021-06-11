@@ -29,8 +29,17 @@ public class testOOP {
     }
 
     public static FSM expression(){
-        FSM FirstTerm = term();
-        return FirstTerm;
+        FSM firstTerm = term();
+        if (index < expression.length && expression[index].equals("|")){
+            //consume the character
+            index++;
+            //resolve the expression on the other side of the symbol
+            FSM secondTerm = expression();
+            FSM branchTerm = new FSM();
+            //perform the alternation
+            return branchTerm.alt(firstTerm, secondTerm);
+        }
+        return firstTerm;
     }
 
     public static FSM term(){
@@ -151,11 +160,15 @@ public class testOOP {
 
             //set this machine's final state to be the next machine's initial state
             setFinal(next.sInitial);
+            for (FSMstate child : next.getChildren()){
+                children.add(child);
+            }
             nextMachine = next;
 
             // System.err.println(sInitial.next1.state_no);
         }
 
+        //handles closures
         public void closure(){
             System.err.println("closure");
 
@@ -167,14 +180,45 @@ public class testOOP {
             this.add(branch);
         }
 
-        public void setFinal(FSMstate newFinal){
-            sFinal = newFinal;
-            for (FSMstate state : children) {
-                if (state.next1 == null) state.setNext1(newFinal); 
-                if (state.next2 == null) state.setNext2(newFinal);
+        //alternates this machine with another
+        public FSM alt(FSM first, FSM second){
+            //create a branching state to connect the two machines
+            BranchingState branch = new BranchingState(state, first.sInitial, second.sInitial);
+            state++;
+            collection.add(branch);
+            children.add(branch);
 
+            //adopt the children of both sub-machines
+            //this will allow for the final states of each sub-machine to be updated along with this one
+            ArrayList<FSMstate> children1 = first.getChildren();
+            ArrayList<FSMstate> children2 = second.getChildren();
+
+            for (FSMstate child : children1){
+                System.err.println("c1: " + child.state_no);
+                this.children.add(child);
+            }
+            for (FSMstate child : children2) {
+                System.err.println("c2: " + child.state_no);
+                this.children.add(child);
             }
 
+            for (FSMstate child : children){
+                System.err.println(child.state_no);
+            }
+            sInitial = branch;
+
+            return this;
+        }
+
+        public void setFinal(FSMstate newFinal){
+            if (sFinal == null){
+                sFinal = newFinal;
+                for (FSMstate state : children) {
+                    if (state.next1 == null) state.setNext1(newFinal); 
+                    if (state.next2 == null) state.setNext2(newFinal);
+
+                }
+            }
             if (nextMachine != null) nextMachine.setFinal(newFinal);
         }
 
@@ -183,6 +227,10 @@ public class testOOP {
             if (sFinal == null) return sFinal;
             //get the next machine's final state if there is a next machine
             return nextMachine.getFinal();
+        }
+
+        public ArrayList<FSMstate> getChildren(){
+            return children;
         }
     }
     
