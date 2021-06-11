@@ -14,7 +14,7 @@ public class REcompile{
 
     private static String[] xpr;        //String containing the regex to be checked/compiled
     private static int j = 0;           //index variable representing the current character of the regex being examined
-    private static int state = 1;       //keeps track of which state is currently being built
+    private static int state = 1;       //keeps track of which state is currently being built (highest state in the machine)
 
     private static void printStates(){
         for (int i = 0; i < ch.length && types[i] != null; i++){
@@ -22,6 +22,7 @@ public class REcompile{
         }
     }
 
+    // Takes the type of state that will be made, the state number, the matching symbol, and the two next states
     private static void setState(String type, int i, String c, int nxt1, int nxt2){
         types[i] = type;
         ch[i] = c;
@@ -57,42 +58,71 @@ public class REcompile{
     // Attempts to evaluate the regex (or part of) as an expression
     private static int expression(){
         int r = term();
-        // The previous state
+        // The previous state (Only need to deal with alternation)
         int t2 = -1, t1 = r, f = -1, n=-1;
-        if (j < xpr.length && (isVocab(xpr[j]) || xpr[j].equals("("))){
-            f = state;
-            state++;
-            n = expression();
+        // if (j < xpr.length && (isVocab(xpr[j]) || xpr[j].equals("("))){
+        //     f = state;
+        //     state++;
+        //     n = expression();
 
-            setState("bridge", f, "", n, n);
+        //     setState("bridge", f, "", n, n);
 
-        }
-        // If we are looking at alternation symbol
+        // }
+        // If we are looking at alternation symbol (must be an or symbol)
         if (j < xpr.length && xpr[j].equals("|")){
-            // If the preceeding state is a 2-state machine,
-            // then set both its second output to this current state
-            if (n1[f] == n2[f])
-                n2[f] = state;
-            //if the preceeding state is a branching machine,
-            //set its first output to this state to this state;
-            n1[f] = state;
-
-            f = state-1;
+            // Holds the finishing state of t1
+            int finishT1 = state-1;
+            
             j++;
-            r = state;
+            // Call second expression
+            t2 = expression();
+            // Holds the finishing state of 21
+            int finishT2 = state-1;
+
+            // Create a new branching state that points to t1 and t2
+            setState("branch", r, "", t1, t2);
             state++;
 
-            // Resolve the second term in the alternation
-            t2 = expression();
-            setState("branch", r, "", t1, t2);
-            if (n1[f] == n2[f])
-                n2[f] = state;
-            n1[f] = state;
+            // Creates a new finishing state
+            setState("finish", state-1, "", 0, 0);
+            state++;
+
+            // Sets the finishing states of t1 and t2 to the new finishing state
+            n1[finishT1] = state-1;
+            n2[finishT1] = state-1;
+            n1[finishT2] = state-1;
+            n2[finishT2] = state-1;
+
+            // // If the preceeding state is a 2-state machine,
+            // // then set both its second output to this current state
+            // if (n1[f] == n2[f])
+            //     n2[f] = state;
+            // // If the preceeding state is a branching machine,
+            // // set its first output to this state to this state;
+            // n1[f] = state;
+
+            // f = state-1;
+            // j++;
+            // r = state;
+            // state++;
+
+            // // Resolve the second term in the alternation
+            // t2 = expression();
+            // if (n1[f] == n2[f])
+            //     n2[f] = state;
+            // n1[f] = state;
         }
+        // If it is not the end of the expression then an error should occur
+        else if(j < xpr.length){
+            System.out.println("There was more in the regex that couldn't be evaluated");
+            System.exit(1);
+        }
+
+
         return r;
     }
 
-    //attempts to evaluate a term within the regex
+    // Attempts to evaluate a term within the regex
     private static int term(){
         // r is the initial state of the term, t1 is term 1, previous state
         int r = -1, t1 = -1, f = -1;
@@ -103,16 +133,16 @@ public class REcompile{
             t1 = r;
         }catch(Exception e){
             System.err.println(e);
+            System.exit(1);
         }
 
-        //resolution for a closure symbol
+        // Resolution for a closure symbol
         if (j < xpr.length && xpr[j].equals("*")){
             setState("branch", state, "", state+1, t1);
             j++;
             r = state;
             state++;
         }
-
         //resolution for "one or none" symbol
         if (j < xpr.length && xpr[j].equals("?")){
             //create a branching state that connects to the term and a next state past the term
@@ -148,7 +178,7 @@ public class REcompile{
     private static int factor() throws Exception{
         int r;
 
-        //first off, check that we're still in the array
+        // Check that we're still in the array
         if (isVocab(xpr[j])) {
             setState("match", state, xpr[j], state+1, state+1);
             j++;
@@ -156,7 +186,7 @@ public class REcompile{
             state++;
 
         }else if (xpr[j].equals(".")) {
-            //character is a wildcard, so create a wildcard state
+            // If the character is a wildcard, so create a wildcard state
             setState("match", state, "..", state+1, state+1);
             j++;
             r = state;
@@ -168,9 +198,11 @@ public class REcompile{
                 if (j < xpr.length && xpr[j].equals(")")) {
                     j++;
                 } else {
+                    r=-1;
                     throw new Exception("1: Could not compile the regex.");
                 }
             } else {
+                r=-1;
                 throw new Exception("2: Could not compile the regex.");
             }
         }

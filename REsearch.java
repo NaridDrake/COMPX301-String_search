@@ -65,13 +65,17 @@ public class REsearch {
                 else if(type.compareTo("finish")==0){
                     newState = new FinalState(stateNum);
                     states.add(newState);
+                }else{
+                    System.out.println("The state wasn't a start, match, finish, branch, bridge");
                 }
-                //states.add(newState);
+                // try{
+                //     states.add(newState);
+                // }catch(Exception e){
+                //     System.out.println("An state wasn't a start, match, finish, branch, bridge");
+                //     e.printStackTrace();
+                // }
             }
             systemReader.close();
-            
-            ////////////////////////////////////////////////Need to sort the array, can either instert at a certian point or implement comparable to the fsm object
-            ///////////////////////////////////////////////////////////////////////////////////////////////
 
         }
         catch(Exception e) {
