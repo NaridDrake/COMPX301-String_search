@@ -3,7 +3,7 @@ import java.util.ArrayList;
 public class testOOP {
     static ArrayList<FSMstate> collection;
     static int state = 0;
-    static int iExpression = 0;
+    static int index = 0;
     static String[] expression;
 
     public static void main(String[] args){
@@ -37,7 +37,7 @@ public class testOOP {
         FSM firstFactor = factor();
 
         //check if we need to concatenate with another term
-        if (iExpression < expression.length){
+        if (index < expression.length && (isVocab(expression[index]) || expression[index].equals("("))){
             firstFactor.cat(term());
         }
         return firstFactor;
@@ -45,14 +45,33 @@ public class testOOP {
 
     public static FSM factor(){
         FSM factor = new FSM();
-        if (isVocab(expression[iExpression])){
-            MatchingState match = new MatchingState(state, expression[iExpression], null);
+        if (isVocab(expression[index])){
+            MatchingState match = new MatchingState(state, expression[index], null);
             collection.add(match);
             factor.add(match);
 
             //consume the symbol and increment state
-            iExpression++;
+            index++;
             state++;
+        }
+        else {
+            if (expression[index].equals("(")){
+                //consume the open bracket and attempt to resolve an expression
+                index++;
+                factor = expression();
+                //check if the bracket closes
+                if (expression[index].equals(")")){
+                    index++;
+                }
+                else{
+                    System.err.println("Could not compile");
+                    System.exit(1);
+                }
+            }
+            else{
+                System.err.println("Could not compile");
+                System.exit(1);
+            }
         }
         return factor;
     }
@@ -61,12 +80,14 @@ public class testOOP {
         String blacklist = "*()[]+|?.";
 
         if (ch.equals("\\")) { // escapes character
-            iExpression++;
+            index++;
             return true;
         }
 
         return !(blacklist.contains(ch));
     }
+
+    //---------------------------------------------------------------------------------------------
 
     static class FSM{
         FSMstate sInitial, sFinal;
