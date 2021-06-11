@@ -36,9 +36,27 @@ public class testOOP {
     public static FSM term(){
         FSM firstFactor = factor();
 
+        //check if there's a closure symbol
+        if (index < expression.length && expression[index].equals("*")){
+            //consume the character
+            index++;
+            firstFactor.closure();
+        }
+
         //check if we need to concatenate with another term
-        if (index < expression.length && (isVocab(expression[index]) || expression[index].equals("("))){
-            firstFactor.cat(term());
+        if (index < expression.length){
+            if (isVocab(expression[index]) || expression[index].equals("(")){
+                firstFactor.cat(term());
+            }
+            // else {
+            //     System.err.println("1: could not compile");
+            //     System.err.println("index: " + index);
+            //     for (FSMstate state : collection) {
+            //         System.err.println(state.state_no);
+            //     }
+            //     System.exit(1);
+            // }
+
         }
         return firstFactor;
     }
@@ -55,21 +73,25 @@ public class testOOP {
             state++;
         }
         else {
-            if (expression[index].equals("(")){
+            if (index < expression.length && expression[index].equals("(")){
                 //consume the open bracket and attempt to resolve an expression
                 index++;
                 factor = expression();
                 //check if the bracket closes
-                if (expression[index].equals(")")){
+                if (index < expression.length && expression[index].equals(")")){
                     index++;
                 }
                 else{
-                    System.err.println("Could not compile");
+                    System.err.println("2: Could not compile");
+                    System.err.println("index: " + index);
+                    for (FSMstate state : collection) {
+                    System.err.println(state.state_no);
+                    }
                     System.exit(1);
                 }
             }
             else{
-                System.err.println("Could not compile");
+                System.err.println("3: Could not compile");
                 System.exit(1);
             }
         }
@@ -100,20 +122,49 @@ public class testOOP {
         }
 
         public void add(FSMstate newState){
+            System.err.println("add");
             if (sInitial == null){
                 sInitial = newState;
                 newState.setNext1(sFinal);
+                children.add(newState);
+            }else{
+                if (sFinal == null){
+                //tack this new state onto the end of the last one/s
+                    for(FSMstate state : children){
+                        if (state.next1 == null)
+                            state.setNext1(newState);
+                        if (state.next2 == null)
+                            state.setNext2(newState);
+                    }
+                    newState.setNext1(sFinal);
+                    children.add(newState);
+                }
+                else{
+                    nextMachine.add(newState);
+                }
             }
-            children.add(newState);
         }
 
         //concatenates this machine with another
         public void cat(FSM next){
+            System.err.println("cat");
+
             //set this machine's final state to be the next machine's initial state
             setFinal(next.sInitial);
             nextMachine = next;
 
-            System.err.println(sInitial.next1.state_no);
+            // System.err.println(sInitial.next1.state_no);
+        }
+
+        public void closure(){
+            System.err.println("closure");
+
+            BranchingState branch = new BranchingState(state, getFinal(), sInitial);
+            state++;
+            collection.add(branch);
+
+            children.add(branch);
+            this.add(branch);
         }
 
         public void setFinal(FSMstate newFinal){
