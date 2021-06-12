@@ -1,19 +1,19 @@
 [x]	E -> T
-[]  E -> T|E
+[x]  E -> T|E
 
 [x]	T -> F
 [x]	T -> F*
-[]	T -> F+
-[]	T -> F?
-[]  T -> FT
+[x]	T -> F+
+[x]	T -> F?
+[x]  T -> FT
 
 [x]	F -> .
 [x]	F -> any non-operator character
 [x]	F -> \any symbol
 [x]	F -> (E)
-[]	F -> [S]
-[]	F -> []S]
-[]	S -> I
-[]	S -> IS
-[]	I -> any symbol other than ']'
+[x]	F -> [S]
+[x]	F -> []S]
+[x]	S -> I
+[x]	S -> IS
+[x]	I -> any symbol other than ']'
 

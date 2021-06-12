@@ -14,10 +14,17 @@ public class REsearch {
     private static Dqueue dqueue;
     // The list of possible states
     private static ArrayList<FSMstate> states;
+    private static ArrayList<Integer> n1Holder, n2Holder;
     // Holds the position of the start of our string search
     private static int pointer;
 
     public static void main(String[] args){
+
+        states = new ArrayList<FSMstate>();
+        n1Holder = new ArrayList<Integer>();
+        n2Holder = new ArrayList<Integer>();
+
+        dqueue = new Dqueue();
 
         try{
             Scanner systemReader = new Scanner(System.in);
@@ -30,44 +37,46 @@ public class REsearch {
             int next1;
             int next2;
 
-            while (systemReader.hasNextLine()) {
+            while (systemReader.hasNextLine() && (stateLine = systemReader.nextLine()) != null) {
                 // Gets the next line
-                stateLine = systemReader.nextLine();
+                // stateLine = systemReader.nextLine();
                 // Need to split the line
                 lineParts = stateLine.split(",");
-                stateNum =  Integer. parseInt(lineParts[0]); 
-                type = lineParts[1];
+                stateNum =  Integer. parseInt(lineParts[1]); 
+                type = lineParts[0];
                 symbol = lineParts[2];
                 next1=  Integer. parseInt(lineParts[3]);
                 next2=  Integer. parseInt(lineParts[4]);
 
                 // If the next state is a starting state
                 if(type.compareTo("start")==0){
-                    newState = new StartingState(stateNum);
+                    newState = new StartingState(null);
                     states.add(newState);
                 }
                 // If the next state is a matching state
                 else if(type.compareTo("match")==0){
-                    newState = new MatchingState(stateNum, symbol, next1);
+                    newState = new MatchingState(stateNum, symbol, null);
                     states.add(newState);
                 }
                 // If the next state is a bridge state
                 else if(type.compareTo("bridge")==0){
-                    newState = new BridgeState(stateNum, next1);
+                    newState = new BridgeState(stateNum, null);
                     states.add(newState);
                 }
                 // If the next state is a branching state 
                 else if(type.compareTo("branch")==0){
-                    newState = new BranchingState(stateNum, next1, next2);
+                    newState = new BranchingState(stateNum, null, null);
                     states.add(newState);
                 }
                 // If the next state is a finishing state 
-                else if(type.compareTo("finish")==0){
+                else if(type.compareTo("final")==0){
                     newState = new FinalState(stateNum);
                     states.add(newState);
                 }else{
                     System.out.println("The state wasn't a start, match, finish, branch, bridge");
                 }
+                n1Holder.add(next1);
+                n2Holder.add(next2);
                 // try{
                 //     states.add(newState);
                 // }catch(Exception e){
@@ -76,6 +85,17 @@ public class REsearch {
                 // }
             }
             systemReader.close();
+
+            //pass back through the list of states and fill in the blank next states
+            for (int i = 0; i < states.size(); i++){
+                int n1Index = n1Holder.get(i);
+                int n2Index = n2Holder.get(i);
+
+                if (n1Index >= 0)
+                    states.get(i).setNext1(states.get(n1Index));
+                if (n2Index >= 0)
+                    states.get(i).setNext2(states.get(n2Index));
+            }
 
         }
         catch(Exception e) {
@@ -101,16 +121,12 @@ public class REsearch {
 
                 // Sets the pointer to 0
                 pointer = 0;
-                found = false;
 
                 FSMstate currentState;
                 String c;
 
                 // Searching from the current pointer
-                for(int i=pointer;i<line.length();i++){ 
-
-                    // If it has been found just exit
-                    if(found) break;
+                searchLine: for(int i=pointer;i<line.length();i++){ 
 
                     // Get the next character
                     c = Character.toString(line.charAt(i));
@@ -119,13 +135,15 @@ public class REsearch {
                     currentState = dqueue.pop();
 
                     // While the dqueue is not empty keep searching
-                    while(currentState!=null && !found){
+                    while(currentState!=null){
 
                         // Checks if the pattern has been found and outputs the index
                         if(currentState instanceof FinalState){
                             // Output the line and break from the loop
                             System.out.println(line);
                             found = true;
+
+                            break searchLine;
                         }
 
                         // If current state is a matching state
@@ -174,7 +192,6 @@ public class REsearch {
                         states.get(i).wasExplored = false;
                     }
                 }
-
             }  
             myReader.close();
         } catch (FileNotFoundException e) {

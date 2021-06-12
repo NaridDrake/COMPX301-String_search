@@ -1,8 +1,7 @@
 public class BranchingState extends FSMstate {
-    int next2;
 
     //constructor method
-    public BranchingState(int num, int n1, int n2){
+    public BranchingState(int num, FSMstate n1, FSMstate n2){
         state_no = num;
         next1 = n1;
         next2 = n2;
@@ -10,7 +9,11 @@ public class BranchingState extends FSMstate {
 
     // gets the next state/s to load if this state passes
     public int[] getNext(){
-        int[] states = {next1, next2};
+        int[] states = {next1.state_no, next2.state_no};
         return states;
+    }
+
+    public String print() {
+        return "branch," + state_no + ",''," + next1.state_no + "," + next2.state_no;
     }
 }
