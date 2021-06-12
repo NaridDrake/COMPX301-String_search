@@ -1,3 +1,9 @@
+/*
+This code was developed for Assignment 3 in COMPX301-21A
+Authors:
+    Narid Drake - 1363139
+    Alessandra Macdonald - 1506517
+*/
 public class Dqueue {
     DQnode scan = new DQnode();
 
@@ -6,10 +12,15 @@ public class Dqueue {
 
     // Adds a new state to the 'queue' (the back of the dqueue) add
     public void add(FSMstate state){
-        //queue a new node at the back of the queue
+        // Add a new node at the back of the queue
         DQnode newNode = new DQnode(null, first, state);
-        //set the new node as the final item in the dqueue
-        last.setNext(newNode);
+
+        // Needs to check if there is anything in the dqueue first
+        if(last!=null){
+            //set the new node as the final item in the dqueue
+            last.setNext(newNode);
+        }
+
         last = newNode;
     }
 
@@ -27,6 +38,7 @@ public class Dqueue {
         // Update pointers
         first.setPrev(newNode);
         first = newNode;
+        
     }
 
     // Pops the top state off the dqueue and returns it
@@ -34,15 +46,25 @@ public class Dqueue {
         // First, unload the state held in the 'topmost' node
         FSMstate stateToReturn = first.unload();
 
-        // Update pointers to remove the topmost node
-        DQnode successor = first.getNext();
-        successor.setPrev(null);
-        first = successor;
+        // Update pointers to remove the topmost node ONLY if it isn't null
+        if( first.getNext() != null){
+            DQnode successor = first.getNext();
+            successor.setPrev(null);
+            first = successor;
+        }
 
         return stateToReturn;
     }
 
+
+    // A method that empties the dqueue
+    public void empty(){
+        scan = new DQnode();
+        first = scan; 
+        last = scan;
+    }
     
+    // A node class that holds two pointers and a value (payload)
     class DQnode{
         private DQnode next, prev;  // Pointers to the next and previous nodes
         private FSMstate payload;
@@ -63,6 +85,8 @@ public class Dqueue {
         public DQnode getPrev(){ return prev; }
 
         public FSMstate unload(){ return payload; }
+
+    
         
     }
 }

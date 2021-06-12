@@ -1,3 +1,9 @@
+/*
+This code was developed for Assignment 3 in COMPX301-21A
+Authors:
+    Narid Drake - 1363139
+    Alessandra Macdonald - 1506517
+*/
 public class MatchingState extends FSMstate {
     private String symbol;  //the character or set of characters that need to be matched in the target
 
@@ -11,6 +17,7 @@ public class MatchingState extends FSMstate {
     //method that returns whether the target symbol in the text matches the symbol
     //for this state
     public boolean matches(String target){
+        if(symbol.compareTo("..")==0) return true;
         return symbol.contains(target);
     }
 

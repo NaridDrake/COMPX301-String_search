@@ -7,6 +7,7 @@ This code was developed for Assignment 3 in COMPX301-21A
 Authors:
     Narid Drake - 1363139
     Alessandra Macdonald - 1506517
+A class that takes a FSM and uses it to pattern search a text file
 */
 public class REsearch {
 
@@ -14,18 +15,20 @@ public class REsearch {
     private static Dqueue dqueue;
     // The list of possible states
     private static ArrayList<FSMstate> states;
+    // Arrays that hold the next state pointers used to create the states
     private static ArrayList<Integer> n1Holder, n2Holder;
     // Holds the position of the start of our string search
     private static int pointer;
 
     public static void main(String[] args){
 
+        // Initialise the lists and dqueue
         states = new ArrayList<FSMstate>();
         n1Holder = new ArrayList<Integer>();
         n2Holder = new ArrayList<Integer>();
-
         dqueue = new Dqueue();
 
+        // Tries to read in the regex and recreate the states to search with
         try{
             Scanner systemReader = new Scanner(System.in);
             String stateLine;
@@ -37,11 +40,12 @@ public class REsearch {
             int next1;
             int next2;
 
+            // Checks there is a new line and reads it in at the same time
             while (systemReader.hasNextLine() && (stateLine = systemReader.nextLine()) != null) {
-                // Gets the next line
-                // stateLine = systemReader.nextLine();
-                // Need to split the line
+
+                // Splits the line and saves the different parts
                 lineParts = stateLine.split(",");
+
                 stateNum =  Integer. parseInt(lineParts[1]); 
                 type = lineParts[0];
                 symbol = lineParts[2];
@@ -75,18 +79,19 @@ public class REsearch {
                 }else{
                     System.out.println("The state wasn't a start, match, finish, branch, bridge");
                 }
+                // Arrays to hold the next values of the states
                 n1Holder.add(next1);
                 n2Holder.add(next2);
-                // try{
-                //     states.add(newState);
-                // }catch(Exception e){
-                //     System.out.println("An state wasn't a start, match, finish, branch, bridge");
-                //     e.printStackTrace();
-                // }
+            }
+
+            // Checks the some sort of state has been added
+            if(states.size()==0){
+                System.err.println("1: Unable to search due to REcompile failure");
+                System.exit(1);
             }
             systemReader.close();
 
-            //pass back through the list of states and fill in the blank next states
+            // Pass back through the list of states and fill in the blank next states
             for (int i = 0; i < states.size(); i++){
                 int n1Index = n1Holder.get(i);
                 int n2Index = n2Holder.get(i);
@@ -99,13 +104,20 @@ public class REsearch {
 
         }
         catch(Exception e) {
-            System.out.println("An error occurred in REsearch system in reading.");
+            System.err.println("An error occurred in REsearch system in reading.");
             e.printStackTrace();
         }
 
         try {
-            // Creates a file using the file name inputted from args
-            File file = new File(args[0]);
+            // Trys to create a file using the file name inputted from args
+            File file=null; 
+            try{
+                file = new File(args[0]);
+            }catch(Exception e){
+                System.err.println("2: Please make sure you have entered a file to search through");
+                System.exit(1);
+            }
+
             Scanner myReader = new Scanner(file);
 
             // The start state of the machine get pushed onto the dqueue
@@ -114,13 +126,21 @@ public class REsearch {
 
             // The current line that is being checked
             String line;
-            boolean found; /// This can be deleted 
 
             // Checks and gets the next line at the same time
             while (myReader.hasNextLine()&&(line = myReader.nextLine())!=null) {
 
                 // Sets the pointer to 0
                 pointer = 0;
+
+                // Reset all the states explored values so that they can re-explored
+                for(int j=0;j<states.size();j++){
+                    states.get(j).wasExplored = false;
+                }
+
+                //Emptys the dqueue
+                dqueue.empty();
+                dqueue.push(states.get(states.get(0).getNext()[0]));
 
                 FSMstate currentState;
                 String c;
@@ -137,65 +157,86 @@ public class REsearch {
                     // While the dqueue is not empty keep searching
                     while(currentState!=null){
 
-                        // Checks if the pattern has been found and outputs the index
-                        if(currentState instanceof FinalState){
-                            // Output the line and break from the loop
-                            System.out.println(line);
-                            found = true;
+                        // If the current state hasn't been explored yet, then explore it
+                        if(!currentState.wasExplored){
 
-                            break searchLine;
-                        }
-
-                        // If current state is a matching state
-                        if(currentState instanceof MatchingState){
-
-                            MatchingState m = (MatchingState)currentState;
-                            if(m.matches(c)){
-                                // Adds the next state to the back of the dqueue
-                                dqueue.add(states.get(currentState.getNext()[0]));
+                            // Checks if the pattern has been found and outputs the index
+                            if(currentState instanceof FinalState){
+                                // Output the line and break from the loop
+                                System.out.println(line);
+                                break searchLine;
                             }
-                        }
-                        // If it is a branch state pushs the next possible states to the front
-                        else if(currentState instanceof BranchingState){
-                            dqueue.push(states.get(currentState.getNext()[0]));
-                            dqueue.push(states.get(currentState.getNext()[1]));
-                        }
-                        // If it is a bridge state push to the front
-                        else if(currentState instanceof BridgeState){
-                            dqueue.push(states.get(currentState.getNext()[0]));
+                            // If current state is a matching state
+                            if(currentState instanceof MatchingState){
+
+                                MatchingState m = (MatchingState)currentState;
+                                if(c!=null && m.matches(c)){
+                                    // Adds the next state to the back of the dqueue
+                                    dqueue.add(states.get(currentState.getNext()[0]));
+                                }
+                            }
+                            // If it is a branch state pushs the next possible states to the front
+                            else if(currentState instanceof BranchingState){
+                                dqueue.push(states.get(currentState.getNext()[0]));
+                                dqueue.push(states.get(currentState.getNext()[1]));
+                            }
+                            // If it is a bridge state push to the front
+                            else if(currentState instanceof BridgeState){
+                                dqueue.push(states.get(currentState.getNext()[0]));
+                            }
+
+                            // Sets the state to explored
+                            currentState.wasExplored = true;
                         }
                         
-                        // Sets the state to explored
-                        currentState.wasExplored = true;
-
                         // Gets the next state from the dqueue
                         currentState = dqueue.pop();
 
-                        // If the dqueue top is empty set bottom ot top and continue
+                        // If the dqueue top is empty set bottom to top and continue with a new character
                         if (currentState==null){
                             // Add on the scan to the dqueue (scan is just a null)
                             dqueue.add(null);
 
                             // Gets the next state from the dqueue
                             currentState = dqueue.pop();
+                            // Checks if the pattern has been found and outputs the index
+                            if(currentState instanceof FinalState){
+                                // Output the line and break from the loop
+                                System.out.println(line);
+                                break searchLine;
+                            }
 
-                            // Gets the next character to search for
                             i++;
-                            c = Character.toString(line.charAt(i));
+                            //Check that there is more to the line
+                            if(i<line.length()){
+                                // Gets the next character to search for
+                                c = Character.toString(line.charAt(i));
+                            }else{
+                                // If we have reached the end of the string then the character should be null
+                                c = null;
+                            }
+
+                            // Reset all the states explored values so that they can re-explored
+                            for(int j=0;j<states.size();j++){
+                                states.get(j).wasExplored = false;
+                            }
                         }
+                        
                     }
                     
-                    // If this fails move the pointer and start again
+                    // If this fails move the pointer and start again from the pointer
                     pointer++;
-                    // Reset all the boolean values so that they can re-explored (loop that sets wasExplored to false)
-                    for(int j=0;j<states.size();j++){
-                        states.get(i).wasExplored = false;
-                    }
+                    i=pointer-1; //One will be added when the loop completes
+                    
+                    //Emptys the dqueue
+                    dqueue.empty();
+                    dqueue.push(states.get(states.get(0).getNext()[0]));
+                    
                 }
             }  
             myReader.close();
         } catch (FileNotFoundException e) {
-            System.out.println("An error occurred in REsearch file reading.");
+            System.err.println("An error occurred in REsearch file reading.");
             e.printStackTrace();
         }
 
