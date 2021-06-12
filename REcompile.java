@@ -25,13 +25,16 @@ public class REcompile {
         FSM machine = expression();
         initial.setNext1(machine.sInitial);
 
+        if(index < expression.length){
+            System.err.println("4: Unable to compile all of the input. The regex that was compiled is: " + args[0].substring(0, index));
+        }
+
         FinalState end = new FinalState(state);
         collection.add(end);
         machine.setFinal(end);
 
         for (FSMstate state : collection) {
             System.out.println(state.print());
-        
         }
 
     }
