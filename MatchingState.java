@@ -15,13 +15,13 @@ public class MatchingState extends FSMstate {
     }
 
     // gets the next state/s to load if this state passes
-    public FSMstate[] getNext(){
-        if (wasExplored) return null;
-        FSMstate[] nextState = {next1};
+    public int[] getNext(){
+        if (wasExplored) return new int[0];
+        int[] nextState = {next1.state_no};
         return nextState;
     }
 
     public String print() {
-        return "" + state_no + "," + symbol + "," + next1.state_no + "," + next1.state_no;
+        return "match," + state_no + "," + symbol + "," + next1.state_no + "," + next1.state_no;
     }
 }

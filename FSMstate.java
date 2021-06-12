@@ -4,7 +4,7 @@ public abstract class FSMstate {
     public boolean wasExplored = false;
 
     //gets the next state/s to load if this state passes
-    public abstract FSMstate[] getNext();
+    public abstract int[] getNext();
 
     public void setNext1(FSMstate n1){
         next1 = n1;

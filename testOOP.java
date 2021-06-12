@@ -57,22 +57,12 @@ public class testOOP {
             if (isVocab(expression[index]) || expression[index].equals("(")){
                 firstFactor.cat(term());
             }
-            // else {
-            //     System.err.println("1: could not compile");
-            //     System.err.println("index: " + index);
-            //     for (FSMstate state : collection) {
-            //         System.err.println(state.state_no);
-            //     }
-            //     System.exit(1);
-            // }
-
         }
         return firstFactor;
     }
 
     public static FSM factor(){
         FSM factor = new FSM();
-        System.err.println("factoring the character " + expression[index]);
         if (isVocab(expression[index])){
             if (expression[index].equals("\\")){
                 index++;
@@ -129,10 +119,6 @@ public class testOOP {
                 }
                 else{
                     System.err.println("2: Could not compile");
-                    System.err.println("index: " + index);
-                    for (FSMstate state : collection) {
-                    System.err.println(state.state_no);
-                    }
                     System.exit(1);
                 }
             }
@@ -225,10 +211,6 @@ public class testOOP {
                 children.add(branch);
 
                 sInitial = branch;
-
-                for (FSMstate state : children) {
-                    System.err.println(state.state_no);
-                }
             }
             
         }
@@ -255,9 +237,6 @@ public class testOOP {
                 this.children.add(child);
             }
 
-            for (FSMstate child : children){
-                System.err.println(child.state_no);
-            }
             sInitial = branch;
 
             return this;

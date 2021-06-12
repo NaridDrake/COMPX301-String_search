@@ -8,12 +8,12 @@ public class BranchingState extends FSMstate {
     }
 
     // gets the next state/s to load if this state passes
-    public FSMstate[] getNext(){
-        FSMstate[] states = {next1, next2};
+    public int[] getNext(){
+        int[] states = {next1.state_no, next2.state_no};
         return states;
     }
 
     public String print() {
-        return "" + state_no + ",''," + next1.state_no + "," + next2.state_no;
+        return "branch," + state_no + ",''," + next1.state_no + "," + next2.state_no;
     }
 }
